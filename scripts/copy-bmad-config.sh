@@ -8,18 +8,19 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Charger les modules
+# Load modules
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/select-worktree.sh"
 source "$SCRIPT_DIR/lib/copy-dirs.sh"
 source "$SCRIPT_DIR/lib/configure-placeholders.sh"
+source "$SCRIPT_DIR/lib/update-gitexclude.sh"
 
-# ── En-tête ──────────────────────────────────────────────────────────────────
+# ── Header ───────────────────────────────────────────────────────────────────
 print_header "BMAD Configuration Copy Script      "
 echo -e "${GREEN}Source (bmad-manager):${NC} $SOURCE_DIR"
 echo ""
 
-# ── Étapes ───────────────────────────────────────────────────────────────────
+# ── Steps ────────────────────────────────────────────────────────────────────
 select_destination    # → DEST_DIR
 
 copy_dirs             # → DIRS_TO_COPY
@@ -28,7 +29,11 @@ print_header "Configure BMAD settings             "
 echo ""
 configure_placeholders
 
-# ── Résumé final ─────────────────────────────────────────────────────────────
+print_header "Updating git exclude                 "
+echo ""
+update_git_exclude
+
+# ── Final summary ────────────────────────────────────────────────────────────
 print_success_header "Copy Operation Successful!          "
 echo ""
 echo -e "${GREEN}Summary:${NC}"

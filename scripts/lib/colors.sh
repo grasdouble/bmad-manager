@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Couleurs ANSI et helpers d'affichage
+# ANSI colors and display helpers
 # Usage: source "$(dirname "${BASH_SOURCE[0]}")/lib/colors.sh"
 
 RED='\033[0;31m'

@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
-# Copie des dossiers BMAD vers la destination
+# Copy BMAD directories to the destination
 # Requires: SOURCE_DIR, DEST_DIR, RED, GREEN, YELLOW, BLUE, NC (depuis colors.sh)
 # Expose: DIRS_TO_COPY
 
-# Dossiers dont BMAD est propriétaire exclusif → remplacement complet, sans prompt
+# Directories exclusively owned by BMAD → full replacement, no prompt
 BMAD_OWNED_DIRS=(
     "_bmad"
 )
 
-# Dossiers BMAD avec contenu utilisateur potentiel → prompt si le dossier existe déjà
+# BMAD directories with potential user content → prompt if the directory already exists
 BMAD_PROMPT_DIRS=(
     "_bmad-custom"
     "_bmad-output"
 )
 
-# Dossiers partagés → seuls les sous-dossiers "bmad-*" sont supprimés avant copie
+# Shared directories → only "bmad-*" subdirectories are removed before copying
 BMAD_SHARED_DIRS=(
     ".opencode/skills"
     ".github/skills"
@@ -92,7 +92,7 @@ _copy_shared_dir() {
     local dir="$1"
     mkdir -p "$DEST_DIR/$dir"
 
-    # Supprimer uniquement les sous-dossiers bmad-* existants
+    # Remove only existing bmad-* subdirectories
     local removed=0
     for subdir in "$DEST_DIR/$dir"/bmad-*/; do
         [ -d "$subdir" ] || continue
@@ -125,7 +125,7 @@ _do_copy() {
         echo ""
     done
 
-    # Copier le script de nettoyage dans scripts/ de la destination
+    # Copy the cleanup script into scripts/ at the destination
     local clean_script="$SOURCE_DIR/scripts/clean-bmad-config.sh"
     if [ -f "$clean_script" ]; then
         echo -e "${YELLOW}Processing: scripts/clean-bmad-config.sh${NC}"

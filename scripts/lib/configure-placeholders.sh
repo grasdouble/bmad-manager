@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Remplacement des placeholders dans les fichiers copiés
-# Requires: DEST_DIR, YELLOW, GREEN, NC (depuis colors.sh)
+# Placeholder replacement in copied files
+# Requires: DEST_DIR, YELLOW, GREEN, NC (from colors.sh)
 
-# Convertit un code langue ISO (fr, en, fr-FR, ...) en nom lisible
+# Converts an ISO language code (fr, en, fr-FR, ...) to a readable name
 _lang_code_to_name() {
-    local code="${1%%-*}"  # Garder seulement la partie avant le tiret (fr-FR → fr)
+    local code="${1%%-*}"  # Keep only the part before the dash (fr-FR → fr)
     case "$code" in
         fr) echo "French" ;;
         en) echo "English" ;;
@@ -20,11 +20,11 @@ _lang_code_to_name() {
     esac
 }
 
-# Détecte la langue système (macOS d'abord, puis $LANG)
+# Detects the system language (macOS first, then $LANG)
 _detect_system_language() {
     local code=""
 
-    # macOS : lire la première langue des préférences
+    # macOS: read the first language from preferences
     if command -v defaults > /dev/null 2>&1; then
         code=$(defaults read -g AppleLanguages 2>/dev/null \
             | grep -m1 '"' \
@@ -32,7 +32,7 @@ _detect_system_language() {
             | cut -d'-' -f1)
     fi
 
-    # Fallback : variable $LANG (ex: fr_FR.UTF-8)
+    # Fallback: $LANG variable (e.g. fr_FR.UTF-8)
     if [ -z "$code" ] && [ -n "$LANG" ]; then
         code=$(echo "$LANG" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
     fi
@@ -41,7 +41,7 @@ _detect_system_language() {
 }
 
 configure_placeholders() {
-    # ── Calcul des valeurs par défaut ─────────────────────────────────────────
+    # ── Compute default values ─────────────────────────────────────────
     local default_username
     default_username=$(git -C "$DEST_DIR" config user.name 2>/dev/null || echo "")
 
@@ -49,7 +49,7 @@ configure_placeholders() {
     local _remote_url
     _remote_url=$(git -C "$DEST_DIR" remote get-url origin 2>/dev/null)
     if [ -n "$_remote_url" ]; then
-        # Fonctionne avec SSH (git@github.com:org/repo.git) et HTTPS (https://github.com/org/repo.git)
+        # Works with SSH (git@github.com:org/repo.git) and HTTPS (https://github.com/org/repo.git)
         default_project=$(basename "$_remote_url" .git)
     else
         default_project=$(basename "$DEST_DIR")
@@ -58,7 +58,7 @@ configure_placeholders() {
     local default_lang
     default_lang=$(_detect_system_language)
 
-    # ── Prompts avec valeurs par défaut affichées ─────────────────────────────
+    # ── Prompts with displayed default values ─────────────────────────────
     echo -e "${YELLOW}These values will replace the placeholders in all copied config files.${NC}"
     echo -e "${YELLOW}Press Enter to use the default value shown in brackets.${NC}"
     echo ""
@@ -69,13 +69,13 @@ configure_placeholders() {
     read -p "Project name        [$default_project]: " CFG_PROJECT
     echo ""
 
-    # Appliquer les defaults si l'utilisateur a juste appuyé Entrée
+    # Apply defaults if the user just pressed Enter
     [ -z "$CFG_USERNAME" ]  && CFG_USERNAME="$default_username"
     [ -z "$CFG_COMM_LANG" ] && CFG_COMM_LANG="$default_lang"
     [ -z "$CFG_OUT_LANG" ]  && CFG_OUT_LANG="English"
     [ -z "$CFG_PROJECT" ]   && CFG_PROJECT="$default_project"
 
-    # ── Tableaux parallèles compatibles bash 3.2 ─────────────────────────────
+    # ── Parallel arrays compatible with bash 3.2 ─────────────────────────────
     PLACEHOLDER_KEYS=()
     PLACEHOLDER_VALS=()
     if [ -n "$CFG_USERNAME" ];  then PLACEHOLDER_KEYS+=("BMAD_MANAGER_USERNAME");              PLACEHOLDER_VALS+=("$CFG_USERNAME");  fi

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Sélection du worktree de destination
+# Destination worktree selection
 # Expose: DEST_DIR
-# Requires: SOURCE_DIR, RED, GREEN, YELLOW, BLUE, NC (depuis colors.sh)
+# Requires: SOURCE_DIR, RED, GREEN, YELLOW, BLUE, NC (from colors.sh)
 
 _get_repo_worktrees() {
     local repo_path="$1"
@@ -25,7 +25,7 @@ _get_repo_worktrees() {
 }
 
 select_destination() {
-    # ── Step 1: saisie du repo cible ─────────────────────────────────────────
+    # ── Step 1: enter target repo ────────────────────────────────────────────
     echo -e "${YELLOW}Step 1 — Target repository${NC}"
     read -p "Enter the path to the target repo: " TARGET_REPO
     TARGET_REPO="${TARGET_REPO/#\~/$HOME}"
@@ -38,7 +38,7 @@ select_destination() {
 
     echo ""
 
-    # ── Step 2: liste des worktrees → sélection ──────────────────────────────
+    # ── Step 2: list worktrees → selection ───────────────────────────────────
     echo -e "${YELLOW}Step 2 — Select destination worktree${NC}"
 
     AVAILABLE_WORKTREES=()
