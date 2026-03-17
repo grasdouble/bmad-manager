@@ -6,7 +6,8 @@
   "scripts": {
     "bmad:status": "pnpm dlx bmad-method status",
     "bmad:update": "pnpm dlx bmad-method install",
-    "bmad:viewer": "pnpm dlx bmad-viewer"
+    "bmad:viewer": "pnpm dlx bmad-viewer",
+    "bmad:copy": "bash scripts/copy-bmad-config.sh"
   },
   "keywords": [],
   "author": "",
