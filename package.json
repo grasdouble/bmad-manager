@@ -1,0 +1,15 @@
+{
+  "name": "bmad-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bmad:status": "pnpm dlx bmad-method status",
+    "bmad:update": "pnpm dlx bmad-method install",
+    "bmad:viewer": "pnpm dlx bmad-viewer"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.1"
+}
