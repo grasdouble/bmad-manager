@@ -56,6 +56,7 @@ The copy script runs four steps:
 | Directory | Strategy |
 |---|---|
 | `_bmad/` | **Full replacement** — always overwritten, no prompt |
+| `_bmad-shared/` | **Full replacement** — always overwritten, no prompt |
 | `_bmad-custom/` | **Prompt** — asks before overwriting if it already exists |
 | `_bmad-output/` | **Prompt** — asks before overwriting if it already exists |
 | `.opencode/skills/bmad-*` | **Selective** — only `bmad-*` subdirs are replaced |
@@ -115,6 +116,7 @@ pnpm bmad:viewer    # Open BMAD viewer
 bmad-manager/
 ├── package.json
 ├── _bmad/                          # Core BMAD configuration (owned, always replaced)
+├── _bmad-shared/                   # Shared custom skills (owned, always replaced)
 ├── _bmad-custom/                   # Custom BMAD config (user content, prompt on overwrite)
 ├── _bmad-output/                   # BMAD outputs (user content, prompt on overwrite)
 └── scripts/

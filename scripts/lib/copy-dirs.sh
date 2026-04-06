@@ -6,6 +6,7 @@
 # Directories exclusively owned by BMAD → full replacement, no prompt
 BMAD_OWNED_DIRS=(
     "_bmad"
+    "_bmad-shared"
 )
 
 # BMAD directories with potential user content → prompt if the directory already exists

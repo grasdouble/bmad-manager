@@ -30,7 +30,7 @@ echo -e "${YELLOW}Scanning for BMAD configuration...${NC}"
 ITEMS_TO_DELETE=()
 
 # Entire owned directories
-for dir in "_bmad" "_bmad-custom" "_bmad-output"; do
+for dir in "_bmad" "_bmad-shared" "_bmad-custom" "_bmad-output"; do
     if [ -d "$TARGET_DIR/$dir" ]; then
         echo -e "  ${RED}•${NC} $dir/"
         ITEMS_TO_DELETE+=("dir:$dir")
@@ -112,7 +112,7 @@ if [ -n "$GIT_DIR" ]; then
         # Remove lines matching BMAD patterns
         # Use | as delimiter to avoid conflicts with / in paths (BSD sed macOS compatible)
         BEFORE=$(wc -l < "$EXCLUDE_FILE")
-        for pattern in "_bmad/" "_bmad-custom/" "_bmad-output/" "scripts/clean-bmad-config.sh" ".opencode/skills/bmad-*" ".github/skills/bmad-*"; do
+        for pattern in "_bmad/" "_bmad-shared/" "_bmad-custom/" "_bmad-output/" "scripts/clean-bmad-config.sh" ".opencode/skills/bmad-*" ".github/skills/bmad-*"; do
             escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
             sed -i.bak "\\|^${escaped}$|d" "$EXCLUDE_FILE" && rm -f "$EXCLUDE_FILE.bak"
         done
