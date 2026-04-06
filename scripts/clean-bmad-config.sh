@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-
+# Usage: bash scripts/clean-bmad-config.sh
+#
 # BMAD Configuration Cleanup Script
 # Removes BMAD configuration from the current project
 # Run this script from the project where BMAD was installed
