@@ -1,0 +1,11 @@
+type: skill
+name: shared-update-docs-project-standard
+description: Maintains up-to-date _bmad-docs/ for a standard single-repo project using one documentation subagent.
+version: 1.0.0
+entry_point: 00-init.md
+author: bmad
+tags:
+  - documentation
+  - standard
+  - single-repo
+  - bmm

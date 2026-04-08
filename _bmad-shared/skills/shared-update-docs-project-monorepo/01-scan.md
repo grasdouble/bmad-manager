@@ -71,7 +71,7 @@ Running scan script...
 Run via terminal from the project root:
 
 ```bash
-python3 {scanScript}
+python3 {scanScript} --root . --packages-root {packages_root}
 ```
 
 If `python3` is not available, try `python {scanScript}`.

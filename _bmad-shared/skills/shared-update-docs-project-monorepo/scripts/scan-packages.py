@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-scan-packages.py — Deterministic monorepo package scanner for shared-update-project-docs skill.
+scan-packages.py — Deterministic monorepo package scanner for shared-update-docs-project-monorepo skill.
 
 Replaces the LLM scan subagent (~600-1000 tokens/call) with a pure Python
 implementation. All decisions are rule-based: no LLM calls, no ambiguity.
 
 Usage:
-    python scripts/scan-packages.py [--root /path/to/repo] [--merge-strategy merge|squash]
+    python scripts/scan-packages.py [--root /path/to/repo] [--packages-root packages]
+                                    [--base-branch origin/main]
 
-Merge strategy:
-    merge  (default) — standard git merge. Compares generatedAtCommit..HEAD.
-    squash           — squash-merge workflow (each PR lands as one commit on main).
-                       Compares generatedAtCommit..main using --first-parent.
-                       generatedAtCommit values stored in frontmatter MUST be main-branch
-                       SHAs (never feature-branch SHAs) for this to work correctly.
+Base branch:
+    Auto-detected from the repo (git symbolic-ref refs/remotes/origin/HEAD).
+    Override with --base-branch if needed (e.g. origin/develop, main, master).
+
+Change detection:
+    Compares generatedAtCommit..<base-branch> using --first-parent.
+    Works correctly regardless of whether the repo uses squash-merge or regular merge.
 
 Output:
     JSON report to stdout — same schema as legacy subagent output.
@@ -49,37 +51,51 @@ def run_git(args: list, cwd: Path) -> str:
         return ""
 
 
-def get_head_commit(root: Path, strategy: str) -> str:
-    """Return the commit SHA to store as generatedAtCommit.
-    - merge:  HEAD (current branch)
-    - squash: tip of main (feature-branch SHAs disappear after squash-merge)
+def detect_base_branch(root: Path) -> str:
+    """Auto-detect the default remote branch. Resolution order:
+    1. git symbolic-ref refs/remotes/origin/HEAD  → e.g. refs/remotes/origin/main
+    2. git remote show origin (slower, requires network)
+    3. Fallback: origin/main
     """
-    if strategy == "squash":
-        sha = run_git(["rev-parse", "main"], root)
-        if not sha:
-            # Fallback: main may be named differently; try HEAD with a warning
-            sha = run_git(["log", "-1", "--format=%H"], root)
+    # Fast local lookup — works if `git fetch` has been run at least once
+    ref = run_git(["symbolic-ref", "refs/remotes/origin/HEAD"], root)
+    if ref:
+        # refs/remotes/origin/main → origin/main
+        return ref.replace("refs/remotes/", "", 1)
+
+    # Slower network call
+    output = run_git(["remote", "show", "origin"], root)
+    for line in output.splitlines():
+        line = line.strip()
+        if line.startswith("HEAD branch:"):
+            branch = line.split(":", 1)[1].strip()
+            if branch and branch != "(unknown)":
+                return f"origin/{branch}"
+
+    return "origin/main"
+
+
+def get_head_commit(root: Path, base_branch: str) -> str:
+    """Return the tip of base_branch as the commit SHA to store as generatedAtCommit.
+    Using the tip of the base branch (rather than HEAD) ensures the stored SHA always
+    exists on the main branch — safe for both squash-merge and regular merge workflows.
+    Falls back to HEAD if base_branch is unavailable (e.g. offline / shallow clone).
+    """
+    sha = run_git(["rev-parse", base_branch], root)
+    if sha:
         return sha
     return run_git(["log", "-1", "--format=%H"], root)
 
 
-def get_commits_since(commit: str, pkg_path: str, root: Path, strategy: str) -> list:
-    """Return commit onelines in pkg_path since commit. Empty list if none or on error.
-
-    - merge:  git log {commit}..HEAD
-    - squash: git log {commit}..main --first-parent
-              (only counts squash commits that landed on main, ignoring feature-branch history)
+def get_commits_since(commit: str, pkg_path: str, root: Path, base_branch: str) -> list:
+    """Return commit onelines in pkg_path since commit.
+    Uses --first-parent on base_branch to count only commits that landed on the main
+    branch, ignoring feature-branch history. Works for both squash-merge and regular merge.
     """
-    if strategy == "squash":
-        output = run_git(
-            ["log", f"{commit}..main", "--first-parent", "--oneline", "--", pkg_path + "/"],
-            root,
-        )
-    else:
-        output = run_git(
-            ["log", f"{commit}..HEAD", "--oneline", "--", pkg_path + "/"],
-            root,
-        )
+    output = run_git(
+        ["log", f"{commit}..{base_branch}", "--first-parent", "--oneline", "--", pkg_path + "/"],
+        root,
+    )
     if not output:
         return []
     return output.splitlines()
@@ -158,7 +174,7 @@ def read_generated_at_commit(doc_path: Path) -> str | None:
     return None
 
 
-def assess_package(meta: dict, repo_root: Path, docs_root: Path, strategy: str) -> dict:
+def assess_package(meta: dict, repo_root: Path, docs_root: Path, base_branch: str) -> dict:
     """Return a full status record for one package."""
     category = meta["category"]
     short_name = meta["_short_name"]
@@ -189,7 +205,7 @@ def assess_package(meta: dict, repo_root: Path, docs_root: Path, strategy: str) 
                 "status": "needs_update", "reason": "No commit reference in frontmatter",
                 "commits_since_last": []}
 
-    commits = get_commits_since(generated_at, meta["path"], repo_root, strategy)
+    commits = get_commits_since(generated_at, meta["path"], repo_root, base_branch)
     if commits:
         return {**base, "generated_at_commit": generated_at,
                 "status": "needs_update",
@@ -218,9 +234,9 @@ def main() -> None:
         help="Relative path from project root to the packages directory (default: packages)"
     )
     parser.add_argument(
-        "--merge-strategy", default="merge", choices=["merge", "squash"],
-        help="Git merge strategy: 'merge' (default) or 'squash'. "
-             "Use 'squash' for repos where PRs land as single squash commits on main."
+        "--base-branch", default=None,
+        help="Override the base branch reference (e.g. origin/develop, main). "
+             "Auto-detected from the repo if not specified."
     )
     parser.add_argument(
         "--last-run", action="store_true",
@@ -231,7 +247,7 @@ def main() -> None:
     repo_root = Path(args.root).resolve()
     packages_dir = repo_root / args.packages_root
     docs_root = repo_root / "_bmad-docs"
-    strategy = args.merge_strategy
+    base_branch = args.base_branch or detect_base_branch(repo_root)
 
     # --last-run: fast summary from frontmatter only, no git calls
     if args.last_run:
@@ -281,7 +297,7 @@ def main() -> None:
               file=sys.stdout)
         sys.exit(1)
 
-    head_commit = get_head_commit(repo_root, strategy)
+    head_commit = get_head_commit(repo_root, base_branch)
     pkg_json_files = find_package_jsons(packages_dir)
 
     packages = []
@@ -289,7 +305,7 @@ def main() -> None:
         meta = parse_package_json(pkg_json, repo_root)
         if meta is None:
             continue
-        record = assess_package(meta, repo_root, docs_root, strategy)
+        record = assess_package(meta, repo_root, docs_root, base_branch)
         packages.append(record)
 
     needs_update = [p["name"] for p in packages if p["status"] != "up_to_date"]
@@ -297,7 +313,7 @@ def main() -> None:
 
     report = {
         "scan_completed": True,
-        "merge_strategy": strategy,
+        "base_branch": base_branch,
         "current_head_commit": head_commit,
         "total_packages": len(packages),
         "packages": packages,

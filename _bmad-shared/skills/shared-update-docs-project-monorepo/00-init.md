@@ -39,7 +39,7 @@ Communicate with user in `{communication_language}`. Write document content in `
 Run the full scan script before presenting anything to the user (non-blocking — if it fails, continue to section 1 without scan results):
 
 ```bash
-python3 {scanScript} --root . --packages-root {packages_root} --merge-strategy {git_merge_strategy}
+python3 {scanScript} --root . --packages-root {packages_root}
 ```
 
 If `python3` is not available, try `python {scanScript}`.

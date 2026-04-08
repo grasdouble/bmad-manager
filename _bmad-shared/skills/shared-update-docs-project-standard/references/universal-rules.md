@@ -1,4 +1,4 @@
-# Universal Rules — shared-update-project-docs
+# Universal Rules — shared-update-docs-project-standard
 
 These rules apply to **every step** of the skill. Each step file references this document instead of repeating them.
 

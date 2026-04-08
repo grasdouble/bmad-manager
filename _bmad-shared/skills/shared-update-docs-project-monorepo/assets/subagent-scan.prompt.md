@@ -11,7 +11,7 @@ Scan the monorepo to identify which packages need documentation updates.
 - **Project**: {{project_name}}
 - **Packages Path**: `{{packages_root}}/`
 - **Documentation Path**: `{{docs_output_path}}/`
-- **Git merge strategy**: {{git_merge_strategy}}
+- **Base branch**: {{base_branch}}
 
 ## STRUCTURE TO SCAN
 
@@ -40,21 +40,13 @@ For each discovered package, check if documentation exists:
 
 ### 3. Identify Updates Needed
 
-For each package, read the `generatedAtCommit` field from the existing documentation frontmatter (if it exists), then detect source changes since that commit.
-
-**If git merge strategy is `squash`:**
-
-> Every commit on `main` is a squash commit representing an entire PR. Use `git log --first-parent` against `main`. `generatedAtCommit` always references a `main` branch SHA — never a branch commit SHA.
+For each package, read the `generatedAtCommit` field from the existing documentation frontmatter (if it exists), then detect source changes since that commit using `--first-parent` against `{{base_branch}}`:
 
 ```bash
-git log {generatedAtCommit}..main --first-parent --format="%H %s" -- {package_path}/
+git log {generatedAtCommit}..{{base_branch}} --first-parent --format="%H %s" -- {package_path}/
 ```
 
-**If git merge strategy is `merge`:**
-
-```bash
-git log {generatedAtCommit}..HEAD --format="%H %s" -- {package_path}/
-```
+`--first-parent` ensures only commits that landed on the main branch are counted, ignoring feature-branch history. This works correctly for both squash-merge and regular merge workflows.
 
 **Status decision for each package:**
 
@@ -65,12 +57,7 @@ git log {generatedAtCommit}..HEAD --format="%H %s" -- {package_path}/
 
 ### 4. Determine current_commit
 
-**If squash strategy:** run `git rev-parse main` — this is the value to use as `generatedAtCommit` when writing new docs. Never use the current branch HEAD.
-
-**If merge strategy:** run `git rev-parse HEAD`.
-
-If running from a non-`main` branch with squash strategy, print a warning but continue:
-> `WARNING: Running from branch '{current_branch}'. generatedAtCommit will reference main's HEAD, not the current branch HEAD. This is intentional.`
+Run `git rev-parse {{base_branch}}` — this is the value to use as `generatedAtCommit` when writing new docs. Always reference the base branch tip, never the current feature branch HEAD.
 
 ## OUTPUT FORMAT
 
@@ -82,9 +69,8 @@ Return a structured JSON report:
   "project_name": "{{project_name}}",
   "packages_root": "{{packages_root}}",
   "docs_output_path": "{{docs_output_path}}",
-  "git_merge_strategy": "{{git_merge_strategy}}",
-  "current_branch": "main",
-  "main_head_commit": "abc1234def5678",
+  "base_branch": "{{base_branch}}",
+  "current_head_commit": "abc1234def5678",
   "total_packages": 12,
   "packages": [
     {
@@ -122,8 +108,8 @@ Return a structured JSON report:
 
 ## BEGIN SCAN
 
-1. Run `git branch --show-current` to get current branch
-2. Determine `current_commit` per strategy above
+1. Run `git symbolic-ref refs/remotes/origin/HEAD` to confirm base branch (or use `{{base_branch}}` directly)
+2. Run `git rev-parse {{base_branch}}` to get `current_head_commit`
 3. List `{{packages_root}}/` to discover package categories
 4. For each package: read `package.json`, check doc existence in `documentation/` and `context/`, read `generatedAtCommit`, run git log
 5. Return the JSON report

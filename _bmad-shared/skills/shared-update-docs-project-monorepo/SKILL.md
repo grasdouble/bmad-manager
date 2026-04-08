@@ -1,9 +1,9 @@
 ---
-name: shared-update-project-docs
-description: Maintains up-to-date documentation using parallel subagents. Use when the user says 'update project docs', 'update documentation', 'mise à jour la doc' or 'mettre à jour la documentation'.
+name: shared-update-docs-project-monorepo
+description: Maintains up-to-date documentation for a monorepo project using parallel subagents. Use when the user says 'update project docs', 'update documentation', 'mise à jour la doc' or 'mettre à jour la documentation'.
 ---
 
-# shared-update-project-docs
+# shared-update-docs-project-monorepo
 
 ## Overview
 
@@ -18,15 +18,13 @@ This skill maintains up-to-date documentation in `{docs_output_path}/` by orches
    Use bmad-init skill:
    - module: bmm
    ```
-   Store all returned vars for use throughout the skill:
-    - `{user_name}` — for greeting
-    - `{communication_language}` — for all communications
-    - `{document_output_language}` — for generated docs
-    - `{project_name}` — project identifier
-    - `{packages_root}` — root folder containing packages (e.g. `packages`)
-    - `{docs_output_path}` — docs output folder (e.g. `_bmad-docs`)
-    - `{git_merge_strategy}` — `merge` (default) or `squash`. Use `squash` for repos where PRs land as single squash commits on main. Affects how the scan script detects changes since last doc generation.
-
+    Store all returned vars for use throughout the skill:
+     - `{user_name}` — for greeting
+     - `{communication_language}` — for all communications
+     - `{document_output_language}` — for generated docs
+     - `{project_name}` — project identifier
+     - `{packages_root}` — root folder containing packages (e.g. `packages`)
+     - `{docs_output_path}` — docs output folder (e.g. `_bmad-docs`)
 2. **Greet** `{user_name}` in `{communication_language}`, briefly explain the workflow.
 
 3. **Route to stage** `00-init.md` to begin — load and execute it.
@@ -60,7 +58,7 @@ This skill maintains up-to-date documentation in `{docs_output_path}/` by orches
 
 ## Scripts
 
-- `scripts/scan-packages.py` — Deterministic monorepo scanner. Replaces the scan subagent (~600-1000 tokens saved per run). Run from project root via `python3 scripts/scan-packages.py [--root /path/to/repo] [--merge-strategy merge|squash]`. Outputs JSON to stdout.
+- `scripts/scan-packages.py` — Deterministic monorepo scanner. Replaces the scan subagent (~600-1000 tokens saved per run). Run from project root via `python3 scripts/scan-packages.py [--root /path/to/repo]`. Base branch auto-detected; override with `--base-branch` if needed. Outputs JSON to stdout.
 - `scripts/validate-index.py` — Structural validator for `{docs_output_path}/index.md`. Checks required sections, internal link integrity, and package link targets. Used by `04-update-index.md` before user confirmation. Exit 0 = OK, 2 = warnings, 1 = errors.
 - `scripts/count-results.py` — File-existence audit after parallel subagent run. Verifies doc + context files were actually written to disk. Used by `02-update-packages.md` section 4.4. Usage: `python3 scripts/count-results.py --packages pkg1,pkg2 [--root /path/to/repo]`.
 
