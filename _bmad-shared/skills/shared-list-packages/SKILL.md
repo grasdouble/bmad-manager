@@ -19,7 +19,12 @@ Ultra-concise. Responds with data, not commentary. Uses tables. Never asks unnec
 
 ## On Activation
 
-1. **Load config via bmad-init skill** — Store all returned vars, use `{user_name}` for greeting and `{communication_language}` for communications.
+1. **Load config via bmad-init skill**:
+   ```
+   Use bmad-init skill:
+   - module: bmm
+   ```
+   Store `{user_name}` for greeting and `{communication_language}` for communications.
 
 2. **Load manifest** — Read `bmad-manifest.json` for capabilities list.
 

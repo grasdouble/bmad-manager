@@ -23,8 +23,8 @@ This skill maintains up-to-date documentation in `{docs_output_path}/` by orches
      - `{communication_language}` — for all communications
      - `{document_output_language}` — for generated docs
      - `{project_name}` — project identifier
-     - `{packages_root}` — root folder containing packages (e.g. `packages`)
-     - `{docs_output_path}` — docs output folder (e.g. `_bmad-docs`)
+     - `{project_knowledge}` → alias as `{docs_output_path}` — docs output folder (e.g. `_bmad-docs`)
+     - `{packages_root}` — root folder containing packages (e.g. `packages`); infer from `package.json` workspaces if absent from config
 2. **Greet** `{user_name}` in `{communication_language}`, briefly explain the workflow.
 
 3. **Route to stage** `00-init.md` to begin — load and execute it.
