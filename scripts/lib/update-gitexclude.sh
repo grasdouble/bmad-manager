@@ -5,8 +5,8 @@
 BMAD_EXCLUDE_PATTERNS=(
     "_bmad/"
     "_bmad-shared/"
-    "_bmad-custom/"
-    "_bmad-output/"
+    # "_bmad-custom/"
+    # "_bmad-output/"
     "scripts/clean-bmad-config.sh"
     ".opencode/skills/bmad-*"
     ".github/skills/bmad-*"
