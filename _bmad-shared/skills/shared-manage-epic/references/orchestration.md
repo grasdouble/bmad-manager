@@ -4,6 +4,14 @@
 
 ---
 
+## Epic Queue Loop
+
+Process each epic in the queue **sequentially** — never in parallel. For each `{epic_num}` in the queue, execute Stages 1–3 below, then move to the next epic. Only advance to the next epic after the current one's retrospective is complete.
+
+After all epics are done, skip directly to Stage 4 (Global Summary).
+
+---
+
 ## Stage 1 — Discover Stories
 
 Read the full `{sprint_status}` file. Extract all entries belonging to epic `{epic_num}`:
@@ -96,18 +104,17 @@ Wait for completion.
 
 ---
 
-## Stage 4 — Final Summary
+## Stage 4 — Global Summary
 
-Report the completed epic run:
+Report the full run across all processed epics:
 
 ```
-🎉 Epic {epic_num} complete!
+🎉 Autopilot complete!
 
-Stories completed: {total}
+Epics processed: {total_epics}
+Stories completed: {total_stories}
 Stories needing fix cycles: {n_fixed}
 Total review iterations: {total_reviews}
-
-Retrospective: {retrospective_output_path}
 ```
 
-If any stories were skipped or blocked during execution, list them with reasons and recommended next steps.
+List each epic with its story count and retrospective output path. If any stories were skipped or blocked during execution, list them with reasons and recommended next steps.
