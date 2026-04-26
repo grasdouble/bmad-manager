@@ -1,4 +1,4 @@
-TEA will detect your project type from manifest files:
+●  TEA will detect your project type from manifest files:
 │
 │    - Frontend: package.json with react/vue/angular, playwright.config.*, vite.config.*
 │
