@@ -127,11 +127,13 @@ _do_copy() {
 
     # Copy the cleanup script into scripts/ at the destination
     local clean_script="$SOURCE_DIR/scripts/clean-bmad-config.sh"
+    local patterns_lib="$SOURCE_DIR/scripts/lib/bmad-patterns.sh"
     if [ -f "$clean_script" ]; then
         echo -e "${YELLOW}Processing: scripts/clean-bmad-config.sh${NC}"
-        mkdir -p "$DEST_DIR/scripts"
+        mkdir -p "$DEST_DIR/scripts/lib"
         cp "$clean_script" "$DEST_DIR/scripts/clean-bmad-config.sh"
         chmod +x "$DEST_DIR/scripts/clean-bmad-config.sh"
+        cp "$patterns_lib" "$DEST_DIR/scripts/lib/bmad-patterns.sh"
         echo -e "  ${GREEN}✓${NC} Completed"
         echo ""
     fi

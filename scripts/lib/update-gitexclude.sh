@@ -2,15 +2,7 @@
 # Adds BMAD entries to .git/info/exclude of the destination repo
 # Requires: DEST_DIR, GREEN, YELLOW, NC (from colors.sh)
 
-BMAD_EXCLUDE_PATTERNS=(
-    "_bmad/"
-    "_bmad-shared/"
-    # "_bmad-custom/"
-    # "_bmad-output/"
-    "scripts/clean-bmad-config.sh"
-    ".agents/skills/bmad-*"
-    ".agents/skills/gd-shared-*"
-)
+source "$(dirname "${BASH_SOURCE[0]}")/bmad-patterns.sh"
 
 update_git_exclude() {
     # --git-common-dir always points to the .git of the main repo,

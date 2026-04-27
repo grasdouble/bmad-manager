@@ -17,15 +17,7 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-BMAD_EXCLUDE_PATTERNS=(
-    "_bmad/"
-    "_bmad-shared/"
-    "_bmad-custom/"
-    "_bmad-output/"
-    "scripts/clean-bmad-config.sh"
-    ".agents/skills/bmad-*"
-    ".agents/skills/gd-shared-*"
-)
+source "$SCRIPT_DIR/lib/bmad-patterns.sh"
 
 echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${RED}║        BMAD Configuration Cleanup Script              ║${NC}"
