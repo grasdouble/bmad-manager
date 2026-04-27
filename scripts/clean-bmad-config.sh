@@ -24,6 +24,7 @@ BMAD_EXCLUDE_PATTERNS=(
     "_bmad-output/"
     "scripts/clean-bmad-config.sh"
     ".agents/skills/bmad-*"
+    ".agents/skills/gd-shared-*"
 )
 
 echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
