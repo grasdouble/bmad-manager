@@ -7,16 +7,11 @@
 
 set -e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
 # The script is located in scripts/ of the destination project — the root is the parent folder
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/bmad-patterns.sh"
 
 echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
@@ -33,7 +28,7 @@ echo -e "${YELLOW}Scanning for BMAD configuration...${NC}"
 ITEMS_TO_DELETE=()
 
 # Entire owned directories
-for dir in "_bmad" "_bmad-shared" "_bmad-custom" "_bmad-output"; do
+for dir in "${BMAD_OWNED_DIRS[@]}" "${BMAD_PROMPT_DIRS[@]}"; do
     if [ -d "$TARGET_DIR/$dir" ]; then
         echo -e "  ${RED}•${NC} $dir/"
         ITEMS_TO_DELETE+=("dir:$dir")
@@ -41,7 +36,7 @@ for dir in "_bmad" "_bmad-shared" "_bmad-custom" "_bmad-output"; do
 done
 
 # bmad-* subdirectories in shared folders
-for shared in ".agents/skills"; do
+for shared in "${BMAD_SHARED_DIRS[@]}"; do
     if [ -d "$TARGET_DIR/$shared" ]; then
         for subdir in "$TARGET_DIR/$shared"/bmad-*/; do
             [ -d "$subdir" ] || continue

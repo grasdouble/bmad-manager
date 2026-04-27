@@ -3,22 +3,7 @@
 # Requires: SOURCE_DIR, DEST_DIR, RED, GREEN, YELLOW, BLUE, NC (depuis colors.sh)
 # Expose: DIRS_TO_COPY
 
-# Directories exclusively owned by BMAD → full replacement, no prompt
-BMAD_OWNED_DIRS=(
-    "_bmad"
-    "_bmad-shared"
-)
-
-# BMAD directories with potential user content → prompt if the directory already exists
-BMAD_PROMPT_DIRS=(
-    "_bmad-custom"
-    "_bmad-output"
-)
-
-# Shared directories → only "bmad-*" subdirectories are removed before copying
-BMAD_SHARED_DIRS=(
-    ".agents/skills"
-)
+source "$(dirname "${BASH_SOURCE[0]}")/bmad-patterns.sh"
 
 _check_source_dirs() {
     echo -e "${YELLOW}Checking source directories...${NC}"
@@ -128,12 +113,14 @@ _do_copy() {
     # Copy the cleanup script into scripts/ at the destination
     local clean_script="$SOURCE_DIR/scripts/clean-bmad-config.sh"
     local patterns_lib="$SOURCE_DIR/scripts/lib/bmad-patterns.sh"
+    local colors_lib="$SOURCE_DIR/scripts/lib/colors.sh"
     if [ -f "$clean_script" ]; then
         echo -e "${YELLOW}Processing: scripts/clean-bmad-config.sh${NC}"
         mkdir -p "$DEST_DIR/scripts/lib"
         cp "$clean_script" "$DEST_DIR/scripts/clean-bmad-config.sh"
         chmod +x "$DEST_DIR/scripts/clean-bmad-config.sh"
         cp "$patterns_lib" "$DEST_DIR/scripts/lib/bmad-patterns.sh"
+        cp "$colors_lib" "$DEST_DIR/scripts/lib/colors.sh"
         echo -e "  ${GREEN}✓${NC} Completed"
         echo ""
     fi
