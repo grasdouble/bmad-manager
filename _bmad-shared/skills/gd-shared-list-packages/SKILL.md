@@ -1,5 +1,5 @@
 ---
-name: shared-list-packages
+name: gd-shared-list-packages
 description: Lists all monorepo packages grouped by category with versions. Use when the user wants to see packages, check versions, or asks for a package inventory.
 ---
 

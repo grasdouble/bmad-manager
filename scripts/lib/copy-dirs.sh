@@ -17,8 +17,7 @@ BMAD_PROMPT_DIRS=(
 
 # Shared directories → only "bmad-*" subdirectories are removed before copying
 BMAD_SHARED_DIRS=(
-    ".opencode/skills"
-    ".github/skills"
+    ".agents/skills"
 )
 
 _check_source_dirs() {

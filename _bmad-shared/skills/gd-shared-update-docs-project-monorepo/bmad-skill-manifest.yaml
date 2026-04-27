@@ -1,5 +1,5 @@
 type: skill
-name: shared-update-docs-project-monorepo
+name: gd-shared-update-docs-project-monorepo
 description: Maintains up-to-date _bmad-docs/ using parallel subagents.
 version: 1.1.0
 entry_point: 00-init.md

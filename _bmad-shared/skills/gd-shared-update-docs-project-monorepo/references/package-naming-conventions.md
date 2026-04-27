@@ -1,6 +1,6 @@
 # Package Naming Conventions
 
-Reference data for the `shared-update-docs-project-monorepo` workflow.
+Reference data for the `gd-shared-update-docs-project-monorepo` workflow.
 
 ---
 

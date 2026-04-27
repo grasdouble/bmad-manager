@@ -1,9 +1,9 @@
 ---
-name: shared-update-docs-project-monorepo
+name: gd-shared-update-docs-project-monorepo
 description: Maintains up-to-date documentation for a monorepo project using parallel subagents. Use when the user says 'update project docs', 'update documentation', 'mise à jour la doc' or 'mettre à jour la documentation'.
 ---
 
-# shared-update-docs-project-monorepo
+# gd-shared-update-docs-project-monorepo
 
 ## Overview
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-scan-packages.py — Deterministic monorepo package scanner for shared-update-docs-project-monorepo skill.
+scan-packages.py — Deterministic monorepo package scanner for gd-shared-update-docs-project-monorepo skill.
 
 Replaces the LLM scan subagent (~600-1000 tokens/call) with a pure Python
 implementation. All decisions are rule-based: no LLM calls, no ambiguity.

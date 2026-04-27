@@ -1,9 +1,9 @@
 ---
-name: shared-update-docs-project-standard
+name: gd-shared-update-docs-project-standard
 description: Maintains up-to-date documentation for a standard (non-monorepo) project. Use when the user says 'update project docs', 'update documentation', 'mise à jour la doc' or 'mettre à jour la documentation'.
 ---
 
-# shared-update-docs-project-standard
+# gd-shared-update-docs-project-standard
 
 ## Overview
 

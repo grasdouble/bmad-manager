@@ -1,4 +1,4 @@
-# Universal Rules — shared-update-docs-project-monorepo
+# Universal Rules — gd-shared-update-docs-project-monorepo
 
 These rules apply to **every step** of the skill. Each step file references this document instead of repeating them.
 

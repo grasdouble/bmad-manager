@@ -2,9 +2,9 @@
   "module-code": "bmm",
   "capabilities": [
     {
-      "name": "shared-update-docs-project-standard",
+      "name": "gd-shared-update-docs-project-monorepo",
       "menu-code": "UPD",
-      "description": "Updates _bmad-docs/ with current project state using a single documentation subagent.",
+      "description": "Updates _bmad-docs/ with current monorepo state using parallel subagents.",
       "prompt": "00-init.md",
       "phase-name": "anytime",
       "output-location": "{project_knowledge}"

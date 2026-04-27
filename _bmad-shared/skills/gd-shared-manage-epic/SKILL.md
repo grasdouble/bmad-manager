@@ -1,5 +1,5 @@
 ---
-name: shared-manage-epic
+name: gd-shared-manage-epic
 description: 'Autonomously drives all stories in one or more epics using single-purpose subagents. Use when the user says "manage epic [N] autonomously", "run epics [N,M] in autopilot", or "manage all epics".'
 ---
 

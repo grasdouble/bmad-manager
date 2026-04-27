@@ -8,8 +8,7 @@ BMAD_EXCLUDE_PATTERNS=(
     # "_bmad-custom/"
     # "_bmad-output/"
     "scripts/clean-bmad-config.sh"
-    ".opencode/skills/bmad-*"
-    ".github/skills/bmad-*"
+    ".agents/skills/bmad-*"
 )
 
 update_git_exclude() {

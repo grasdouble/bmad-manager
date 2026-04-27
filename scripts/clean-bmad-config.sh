@@ -39,7 +39,7 @@ for dir in "_bmad" "_bmad-shared" "_bmad-custom" "_bmad-output"; do
 done
 
 # bmad-* subdirectories in shared folders
-for shared in ".opencode/skills" ".github/skills"; do
+for shared in ".agents/skills"; do
     if [ -d "$TARGET_DIR/$shared" ]; then
         for subdir in "$TARGET_DIR/$shared"/bmad-*/; do
             [ -d "$subdir" ] || continue
@@ -113,7 +113,7 @@ if [ -n "$GIT_DIR" ]; then
         # Remove lines matching BMAD patterns
         # Use | as delimiter to avoid conflicts with / in paths (BSD sed macOS compatible)
         BEFORE=$(wc -l < "$EXCLUDE_FILE")
-        for pattern in "_bmad/" "_bmad-shared/" "_bmad-custom/" "_bmad-output/" "scripts/clean-bmad-config.sh" ".opencode/skills/bmad-*" ".github/skills/bmad-*"; do
+        for pattern in "_bmad/" "_bmad-shared/" "_bmad-custom/" "_bmad-output/" "scripts/clean-bmad-config.sh" ".agents/skills/bmad-*"; do
             escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
             sed -i.bak "\\|^${escaped}$|d" "$EXCLUDE_FILE" && rm -f "$EXCLUDE_FILE.bak"
         done
