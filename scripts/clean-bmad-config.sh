@@ -17,6 +17,15 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+BMAD_EXCLUDE_PATTERNS=(
+    "_bmad/"
+    "_bmad-shared/"
+    "_bmad-custom/"
+    "_bmad-output/"
+    "scripts/clean-bmad-config.sh"
+    ".agents/skills/bmad-*"
+)
+
 echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${RED}║        BMAD Configuration Cleanup Script              ║${NC}"
 echo -e "${RED}╚════════════════════════════════════════════════════════╝${NC}"
@@ -100,33 +109,41 @@ fi
 
 # ── Git : exclude ────────────────────────────────────────────────────────────
 echo -e "${YELLOW}Cleaning git configuration...${NC}"
+echo -e "${YELLOW}⚠  If BMAD is installed on other worktrees of this repo,${NC}"
+echo -e "${YELLOW}   removing .git/info/exclude entries will break them.${NC}"
+echo ""
+read -p "Remove BMAD entries from .git/info/exclude? [yes/no]: " clean_exclude
 
-# Remove BMAD entries from .git/info/exclude
-GIT_DIR=$(git -C "$TARGET_DIR" rev-parse --git-common-dir 2>/dev/null)
-if [ -n "$GIT_DIR" ]; then
-    case "$GIT_DIR" in
-        /*) : ;;
-        *)  GIT_DIR="$TARGET_DIR/$GIT_DIR" ;;
-    esac
-    EXCLUDE_FILE="$GIT_DIR/info/exclude"
-    if [ -f "$EXCLUDE_FILE" ]; then
-        # Remove lines matching BMAD patterns
-        # Use | as delimiter to avoid conflicts with / in paths (BSD sed macOS compatible)
-        BEFORE=$(wc -l < "$EXCLUDE_FILE")
-        for pattern in "_bmad/" "_bmad-shared/" "_bmad-custom/" "_bmad-output/" "scripts/clean-bmad-config.sh" ".agents/skills/bmad-*"; do
-            escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
-            sed -i.bak "\\|^${escaped}$|d" "$EXCLUDE_FILE" && rm -f "$EXCLUDE_FILE.bak"
-        done
-        AFTER=$(wc -l < "$EXCLUDE_FILE")
-        REMOVED=$((BEFORE - AFTER))
-        if [ "$REMOVED" -gt 0 ]; then
-            echo -e "  ${GREEN}✓${NC} Removed $REMOVED entr$([ "$REMOVED" -eq 1 ] && echo "y" || echo "ies") from .git/info/exclude"
+if [ "$clean_exclude" = "yes" ]; then
+    # Remove BMAD entries from .git/info/exclude
+    GIT_DIR=$(git -C "$TARGET_DIR" rev-parse --git-common-dir 2>/dev/null)
+    if [ -n "$GIT_DIR" ]; then
+        case "$GIT_DIR" in
+            /*) : ;;
+            *)  GIT_DIR="$TARGET_DIR/$GIT_DIR" ;;
+        esac
+        EXCLUDE_FILE="$GIT_DIR/info/exclude"
+        if [ -f "$EXCLUDE_FILE" ]; then
+            # Remove lines matching BMAD patterns
+            # Use | as delimiter to avoid conflicts with / in paths (BSD sed macOS compatible)
+            BEFORE=$(wc -l < "$EXCLUDE_FILE")
+            for pattern in "${BMAD_EXCLUDE_PATTERNS[@]}"; do
+                escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
+                sed -i.bak "\\|^${escaped}$|d" "$EXCLUDE_FILE" && rm -f "$EXCLUDE_FILE.bak"
+            done
+            AFTER=$(wc -l < "$EXCLUDE_FILE")
+            REMOVED=$((BEFORE - AFTER))
+            if [ "$REMOVED" -gt 0 ]; then
+                echo -e "  ${GREEN}✓${NC} Removed $REMOVED entr$([ "$REMOVED" -eq 1 ] && echo "y" || echo "ies") from .git/info/exclude"
+            else
+                echo -e "  ${YELLOW}⊘${NC} No BMAD entries found in .git/info/exclude"
+            fi
         else
-            echo -e "  ${YELLOW}⊘${NC} No BMAD entries found in .git/info/exclude"
+            echo -e "  ${YELLOW}⊘${NC} .git/info/exclude not found, skipping"
         fi
-    else
-        echo -e "  ${YELLOW}⊘${NC} .git/info/exclude not found, skipping"
     fi
+else
+    echo -e "  ${BLUE}⊘${NC} Skipped (git exclude entries preserved)"
 fi
 echo ""
 
