@@ -99,7 +99,7 @@ configure_placeholders() {
             sed -i.bak "s|$placeholder|$value|g" "$file"
             rm -f "${file}.bak"
             [[ " ${PATCHED_FILES[*]} " != *" $file "* ]] && PATCHED_FILES+=("$file")
-        done < <(grep -rl "$placeholder" "$DEST_DIR" 2>/dev/null)
+        done < <(grep -rl --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=dist "$placeholder" "$DEST_DIR" 2>/dev/null)
     done
 
     if [ ${#PATCHED_FILES[@]} -eq 0 ]; then

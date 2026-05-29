@@ -13,11 +13,10 @@ CONFIG_FILE="${1:-$SCRIPT_DIR/delete-bmad.config}"
 
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/bmad-patterns.sh"
+source "$SCRIPT_DIR/lib/delete-items.sh"
 
 # ── Header ────────────────────────────────────────────────────────────────────
-echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${RED}║             BMAD Deletion Script                      ║${NC}"
-echo -e "${RED}╚════════════════════════════════════════════════════════╝${NC}"
+print_header "BMAD Deletion Script                "
 echo ""
 echo -e "${YELLOW}⚠  WARNING: This script will DELETE BMAD from this repo!${NC}"
 echo -e "${YELLOW}   Target: $DEST_DIR${NC}"
@@ -79,41 +78,26 @@ echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${RED}⚠  The items listed above will be PERMANENTLY DELETED.${NC}"
 echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
+read -p "Are you ABSOLUTELY SURE? [yes/no]: " confirm
+
+if [ "$confirm" != "yes" ]; then
+    echo -e "${BLUE}Operation cancelled.${NC}"
+    exit 0
+fi
+
+echo ""
 echo -e "${RED}Starting deletion...${NC}"
 echo ""
 
 # ── Deletion ──────────────────────────────────────────────────────────────────
-deleted_count=0
-for item in "${ITEMS_TO_DELETE[@]}"; do
-    full_path="$DEST_DIR/$item"
-    echo -e "${YELLOW}Deleting: $item${NC}"
-    if [ -d "$full_path" ]; then
-        rm -rf "$full_path"
-    else
-        rm -f "$full_path"
-    fi
-    echo -e "  ${GREEN}✓${NC} Deleted"
-    echo ""
-    deleted_count=$((deleted_count + 1))
-done
-
-# Remove scripts/lib/ and scripts/ if they are empty after deletion
-for dir in "scripts/lib" "scripts"; do
-    if [ -d "$DEST_DIR/$dir" ] && [ -z "$(ls -A "$DEST_DIR/$dir")" ]; then
-        rmdir "$DEST_DIR/$dir"
-        echo -e "${GREEN}✓${NC} Removed empty directory: $dir"
-        echo ""
-    fi
-done
+delete_items "${ITEMS_TO_DELETE[@]}"
 
 # ── Summary ───────────────────────────────────────────────────────────────────
-echo -e "${GREEN}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║           Deletion Completed Successfully!             ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════╝${NC}"
+print_success_header "Deletion Completed Successfully!    "
 echo ""
 echo -e "${GREEN}Summary:${NC}"
 echo -e "  ${BLUE}•${NC} Target:        $DEST_DIR"
-echo -e "  ${BLUE}•${NC} Items deleted: $deleted_count"
+echo -e "  ${BLUE}•${NC} Items deleted: ${#ITEMS_TO_DELETE[@]}"
 echo ""
 echo -e "${BLUE}The repo is now clean of BMAD. Ready for a fresh install.${NC}"
 echo ""

@@ -78,7 +78,4 @@ select_destination() {
         echo -e "${RED}✗ Error: Source and destination are the same!${NC}"
         exit 1
     fi
-
-    echo -e "${GREEN}Destination:${NC} $DEST_DIR"
-    echo ""
 }

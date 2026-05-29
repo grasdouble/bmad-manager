@@ -9,17 +9,17 @@ set -e
 
 # The script is located in scripts/ of the destination project — the root is the parent folder
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TARGET_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+DEST_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 source "$SCRIPT_DIR/lib/colors.sh"
 source "$SCRIPT_DIR/lib/bmad-patterns.sh"
+source "$SCRIPT_DIR/lib/delete-items.sh"
+source "$SCRIPT_DIR/lib/update-gitexclude.sh"
 
-echo -e "${RED}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${RED}║        BMAD Configuration Cleanup Script              ║${NC}"
-echo -e "${RED}╚════════════════════════════════════════════════════════╝${NC}"
+print_header "BMAD Configuration Cleanup Script   "
 echo ""
 echo -e "${YELLOW}⚠  WARNING: This script will DELETE BMAD configuration!${NC}"
-echo -e "${YELLOW}   Target: $TARGET_DIR${NC}"
+echo -e "${YELLOW}   Target: $DEST_DIR${NC}"
 echo ""
 
 # ── Scan ─────────────────────────────────────────────────────────────────────
@@ -30,46 +30,44 @@ BMAD_CONTENT_FOUND=false
 
 # Entire owned directories
 for dir in "${BMAD_OWNED_DIRS[@]}" "${BMAD_PROMPT_DIRS[@]}"; do
-    if [ -d "$TARGET_DIR/$dir" ]; then
+    if [ -d "$DEST_DIR/$dir" ]; then
         echo -e "  ${RED}•${NC} $dir/"
-        ITEMS_TO_DELETE+=("dir:$dir")
+        ITEMS_TO_DELETE+=("$dir")
         BMAD_CONTENT_FOUND=true
     fi
 done
 
 # bmad-* entries in shared folders (dirs for .agents/skills etc., files for .github/agents)
 for shared in "${BMAD_SHARED_DIRS[@]}" "${BMAD_SKILL_DEST_DIRS[@]}"; do
-    if [ -d "$TARGET_DIR/$shared" ]; then
-        for entry in "$TARGET_DIR/$shared"/bmad-*; do
+    if [ -d "$DEST_DIR/$shared" ]; then
+        for entry in "$DEST_DIR/$shared"/bmad-*; do
             [ -e "$entry" ] || continue
             rel="$shared/$(basename "$entry")"
             if [ -d "$entry" ]; then
                 echo -e "  ${RED}•${NC} $rel/"
-                ITEMS_TO_DELETE+=("dir:$rel")
             else
                 echo -e "  ${RED}•${NC} $rel"
-                ITEMS_TO_DELETE+=("file:$rel")
             fi
+            ITEMS_TO_DELETE+=("$rel")
             BMAD_CONTENT_FOUND=true
         done
     fi
 done
 
-# The cleanup script and its lib files
+# The cleanup script and its lib files (derived from BMAD_EXCLUDE_PATTERNS)
 echo -e "  ${RED}•${NC} scripts/clean-bmad-config.sh"
-ITEMS_TO_DELETE+=("file:scripts/clean-bmad-config.sh")
-if [ -f "$TARGET_DIR/scripts/lib/bmad-patterns.sh" ]; then
-    echo -e "  ${RED}•${NC} scripts/lib/bmad-patterns.sh"
-    ITEMS_TO_DELETE+=("file:scripts/lib/bmad-patterns.sh")
-fi
-if [ -f "$TARGET_DIR/scripts/lib/colors.sh" ]; then
-    echo -e "  ${RED}•${NC} scripts/lib/colors.sh"
-    ITEMS_TO_DELETE+=("file:scripts/lib/colors.sh")
-fi
+ITEMS_TO_DELETE+=("scripts/clean-bmad-config.sh")
+for pattern in "${BMAD_EXCLUDE_PATTERNS[@]}"; do
+    [[ "$pattern" == scripts/lib/* ]] || continue
+    if [ -f "$DEST_DIR/$pattern" ]; then
+        echo -e "  ${RED}•${NC} $pattern"
+        ITEMS_TO_DELETE+=("$pattern")
+    fi
+done
 
 echo ""
 
-if [ "$BMAD_CONTENT_FOUND" = false ] && [ ${#ITEMS_TO_DELETE[@]} -le 3 ]; then
+if [ "$BMAD_CONTENT_FOUND" = false ]; then
     # Only the script files themselves — no real BMAD content to clean
     echo -e "${GREEN}✓ No BMAD configuration found. Nothing to clean.${NC}"
     exit 0
@@ -92,27 +90,7 @@ echo -e "${RED}Starting deletion...${NC}"
 echo ""
 
 # ── Deletion ──────────────────────────────────────────────────────────────────
-for item in "${ITEMS_TO_DELETE[@]}"; do
-    type="${item%%:*}"
-    path="${item#*:}"
-
-    echo -e "${YELLOW}Deleting: $path${NC}"
-    if [ "$type" = "dir" ]; then
-        rm -rf "$TARGET_DIR/$path"
-    else
-        rm -f "$TARGET_DIR/$path"
-    fi
-    echo -e "  ${GREEN}✓${NC} Deleted"
-    echo ""
-done
-
-# Remove scripts/lib/ and scripts/ if empty after deletion
-if [ -d "$TARGET_DIR/scripts/lib" ] && [ -z "$(ls -A "$TARGET_DIR/scripts/lib")" ]; then
-    rmdir "$TARGET_DIR/scripts/lib"
-fi
-if [ -d "$TARGET_DIR/scripts" ] && [ -z "$(ls -A "$TARGET_DIR/scripts")" ]; then
-    rmdir "$TARGET_DIR/scripts"
-fi
+delete_items "${ITEMS_TO_DELETE[@]}"
 
 # ── Git : exclude ────────────────────────────────────────────────────────────
 echo -e "${YELLOW}Cleaning git configuration...${NC}"
@@ -122,46 +100,18 @@ echo ""
 read -p "Remove BMAD entries from .git/info/exclude? [yes/no]: " clean_exclude
 
 if [ "$clean_exclude" = "yes" ]; then
-    # Remove BMAD entries from .git/info/exclude
-    GIT_DIR=$(git -C "$TARGET_DIR" rev-parse --git-common-dir 2>/dev/null)
-    if [ -n "$GIT_DIR" ]; then
-        case "$GIT_DIR" in
-            /*) : ;;
-            *)  GIT_DIR="$TARGET_DIR/$GIT_DIR" ;;
-        esac
-        EXCLUDE_FILE="$GIT_DIR/info/exclude"
-        if [ -f "$EXCLUDE_FILE" ]; then
-            # Remove lines matching BMAD patterns
-            # Use | as delimiter to avoid conflicts with / in paths (BSD sed macOS compatible)
-            BEFORE=$(wc -l < "$EXCLUDE_FILE")
-            for pattern in "${BMAD_EXCLUDE_PATTERNS[@]}"; do
-                escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
-                sed -i.bak "\\|^${escaped}$|d" "$EXCLUDE_FILE" && rm -f "$EXCLUDE_FILE.bak"
-            done
-            AFTER=$(wc -l < "$EXCLUDE_FILE")
-            REMOVED=$((BEFORE - AFTER))
-            if [ "$REMOVED" -gt 0 ]; then
-                echo -e "  ${GREEN}✓${NC} Removed $REMOVED entr$([ "$REMOVED" -eq 1 ] && echo "y" || echo "ies") from .git/info/exclude"
-            else
-                echo -e "  ${YELLOW}⊘${NC} No BMAD entries found in .git/info/exclude"
-            fi
-        else
-            echo -e "  ${YELLOW}⊘${NC} .git/info/exclude not found, skipping"
-        fi
-    fi
+    remove_git_exclude "$DEST_DIR"
 else
     echo -e "  ${BLUE}⊘${NC} Skipped (git exclude entries preserved)"
 fi
 echo ""
 
 # ── Summary ───────────────────────────────────────────────────────────────────
-echo -e "${GREEN}╔════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║           Cleanup Completed Successfully!              ║${NC}"
-echo -e "${GREEN}╚════════════════════════════════════════════════════════╝${NC}"
+print_success_header "Cleanup Completed Successfully!     "
 echo ""
 echo -e "${GREEN}Summary:${NC}"
-echo -e "  ${BLUE}•${NC} Target:        $TARGET_DIR"
-echo -e "  ${BLUE}•${NC} Items deleted: $((${#ITEMS_TO_DELETE[@]}))"
+echo -e "  ${BLUE}•${NC} Target:        $DEST_DIR"
+echo -e "  ${BLUE}•${NC} Items deleted: ${#ITEMS_TO_DELETE[@]}"
 echo ""
 echo -e "${BLUE}The project is now clean of BMAD configuration.${NC}"
 echo ""

@@ -148,17 +148,19 @@ _do_copy() {
         echo ""
     done
 
-    # Copy the cleanup script into scripts/ at the destination
+    # Copy the cleanup script and its lib files into scripts/ at the destination.
+    # The list of lib files is derived from BMAD_EXCLUDE_PATTERNS (entries matching scripts/lib/*).
     local clean_script="$SOURCE_DIR/scripts/clean-bmad-config.sh"
-    local patterns_lib="$SOURCE_DIR/scripts/lib/bmad-patterns.sh"
-    local colors_lib="$SOURCE_DIR/scripts/lib/colors.sh"
     if [ -f "$clean_script" ]; then
         echo -e "${YELLOW}Processing: scripts/clean-bmad-config.sh${NC}"
         mkdir -p "$DEST_DIR/scripts/lib"
         cp "$clean_script" "$DEST_DIR/scripts/clean-bmad-config.sh"
         chmod +x "$DEST_DIR/scripts/clean-bmad-config.sh"
-        cp "$patterns_lib" "$DEST_DIR/scripts/lib/bmad-patterns.sh"
-        cp "$colors_lib" "$DEST_DIR/scripts/lib/colors.sh"
+        for pattern in "${BMAD_EXCLUDE_PATTERNS[@]}"; do
+            [[ "$pattern" == scripts/lib/* ]] || continue
+            local lib_file="${pattern#scripts/lib/}"
+            cp "$SOURCE_DIR/scripts/lib/$lib_file" "$DEST_DIR/scripts/lib/$lib_file"
+        done
         echo -e "  ${GREEN}✓${NC} Completed"
         echo ""
     fi

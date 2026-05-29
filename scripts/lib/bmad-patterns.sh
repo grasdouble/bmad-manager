@@ -28,7 +28,10 @@ BMAD_SKILL_DEST_DIRS=(
     ".claude/skills"
 )
 
-# Patterns added/removed from .git/info/exclude
+# Canonical list of everything BMAD places in the destination.
+# - Used by update-gitexclude.sh to add/remove .git/info/exclude entries.
+# - Entries matching "scripts/lib/*" are the lib files copied alongside clean-bmad-config.sh;
+#   copy-dirs.sh and clean-bmad-config.sh derive that list from here — no separate array needed.
 BMAD_EXCLUDE_PATTERNS=(
     "_bmad/"
     "_bmad-shared/"
@@ -37,10 +40,11 @@ BMAD_EXCLUDE_PATTERNS=(
     "scripts/clean-bmad-config.sh"
     "scripts/lib/bmad-patterns.sh"
     "scripts/lib/colors.sh"
+    "scripts/lib/delete-items.sh"
+    "scripts/lib/update-gitexclude.sh"
     ".agents/skills/bmad-*"
     ".claude/skills/bmad-*"
     ".agents/skills/gd-shared-*"
     ".claude/skills/gd-shared-*"
     ".github/agents/bmad-*"
 )
-

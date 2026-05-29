@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Adds BMAD entries to .git/info/exclude of the destination repo
-# Requires: DEST_DIR, GREEN, YELLOW, NC (from colors.sh)
+# Adds or removes BMAD entries in .git/info/exclude of the destination repo
+# Requires: DEST_DIR, GREEN, YELLOW, BLUE, NC (from colors.sh)
 
 source "$(dirname "${BASH_SOURCE[0]}")/bmad-patterns.sh"
 
@@ -45,4 +45,45 @@ update_git_exclude() {
         echo -e "  ${GREEN}✓${NC} Added $added entr$([ "$added" -eq 1 ] && echo "y" || echo "ies") to $exclude_file"
     fi
     echo ""
+}
+
+# remove_git_exclude TARGET_DIR
+#   Removes BMAD_EXCLUDE_PATTERNS entries from .git/info/exclude of TARGET_DIR.
+#   Uses | as sed delimiter to avoid conflicts with / in paths (BSD sed / macOS compatible).
+remove_git_exclude() {
+    local target_dir="$1"
+    local git_dir
+    git_dir=$(git -C "$target_dir" rev-parse --git-common-dir 2>/dev/null)
+
+    if [ -z "$git_dir" ]; then
+        echo -e "  ${YELLOW}⊘${NC} Not a git repository, skipping"
+        return
+    fi
+
+    case "$git_dir" in
+        /*) : ;;
+        *)  git_dir="$target_dir/$git_dir" ;;
+    esac
+
+    local exclude_file="$git_dir/info/exclude"
+    if [ ! -f "$exclude_file" ]; then
+        echo -e "  ${YELLOW}⊘${NC} .git/info/exclude not found, skipping"
+        return
+    fi
+
+    local before after removed
+    before=$(wc -l < "$exclude_file")
+    for pattern in "${BMAD_EXCLUDE_PATTERNS[@]}"; do
+        local escaped
+        escaped=$(printf '%s\n' "$pattern" | sed 's/[.[\*^$|]/\\&/g')
+        sed -i.bak "\\|^${escaped}$|d" "$exclude_file" && rm -f "$exclude_file.bak"
+    done
+    after=$(wc -l < "$exclude_file")
+    removed=$((before - after))
+
+    if [ "$removed" -gt 0 ]; then
+        echo -e "  ${GREEN}✓${NC} Removed $removed entr$([ "$removed" -eq 1 ] && echo "y" || echo "ies") from .git/info/exclude"
+    else
+        echo -e "  ${YELLOW}⊘${NC} No BMAD entries found in .git/info/exclude"
+    fi
 }
