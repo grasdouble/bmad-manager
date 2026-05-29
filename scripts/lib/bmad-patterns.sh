@@ -16,6 +16,8 @@ BMAD_PROMPT_DIRS=(
 # Shared directories → only "bmad-*" subdirectories are managed
 BMAD_SHARED_DIRS=(
     ".agents/skills"
+    ".claude/skills"
+    ".github/agents"
 )
 
 # Patterns added/removed from .git/info/exclude
@@ -29,5 +31,7 @@ BMAD_EXCLUDE_PATTERNS=(
     "scripts/lib/colors.sh"
     ".agents/skills/bmad-*"
     ".agents/skills/gd-shared-*"
+    ".claude/skills/bmad-*"
+    ".github/agents/bmad-*"
 )
 
