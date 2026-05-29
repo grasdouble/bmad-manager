@@ -79,14 +79,6 @@ echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━�
 echo -e "${RED}⚠  The items listed above will be PERMANENTLY DELETED.${NC}"
 echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-read -p "Are you ABSOLUTELY SURE? [yes/no]: " confirm
-
-if [ "$confirm" != "yes" ]; then
-    echo -e "${BLUE}Operation cancelled.${NC}"
-    exit 0
-fi
-
-echo ""
 echo -e "${RED}Starting deletion...${NC}"
 echo ""
 

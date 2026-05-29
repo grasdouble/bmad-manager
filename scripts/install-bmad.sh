@@ -29,39 +29,6 @@ echo ""
 # ── Load config ───────────────────────────────────────────────────────────────
 source "$CONFIG_FILE"
 
-# ── Resolve auto-detected defaults ────────────────────────────────────────────
-if [ -z "$USER_NAME" ]; then
-    USER_NAME=$(git -C "$REPO_DIR" config user.name 2>/dev/null || echo "")
-fi
-
-if [ -z "$PROJECT_NAME" ]; then
-    _remote=$(git -C "$REPO_DIR" remote get-url origin 2>/dev/null || echo "")
-    if [ -n "$_remote" ]; then
-        PROJECT_NAME=$(basename "$_remote" .git)
-    else
-        PROJECT_NAME=$(basename "$REPO_DIR")
-    fi
-fi
-
-if [ -z "$COMMUNICATION_LANGUAGE" ]; then
-    _code=""
-    if command -v defaults > /dev/null 2>&1; then
-        _code=$(defaults read -g AppleLanguages 2>/dev/null \
-            | grep -m1 '"' | tr -d ' ",' | cut -d'-' -f1)
-    fi
-    [ -z "$_code" ] && _code=$(echo "${LANG:-en}" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
-    case "${_code%%-*}" in
-        fr) COMMUNICATION_LANGUAGE="French" ;;
-        de) COMMUNICATION_LANGUAGE="German" ;;
-        es) COMMUNICATION_LANGUAGE="Spanish" ;;
-        it) COMMUNICATION_LANGUAGE="Italian" ;;
-        pt) COMMUNICATION_LANGUAGE="Portuguese" ;;
-        *)  COMMUNICATION_LANGUAGE="English" ;;
-    esac
-fi
-
-[ -z "$DOCUMENT_OUTPUT_LANGUAGE" ] && DOCUMENT_OUTPUT_LANGUAGE="English"
-
 # ── Build command ─────────────────────────────────────────────────────────────
 CMD=(npx bmad-method install --yes --directory "$REPO_DIR")
 
@@ -69,10 +36,15 @@ CMD=(npx bmad-method install --yes --directory "$REPO_DIR")
 [ -n "$TOOLS"   ] && CMD+=(--tools   "$TOOLS")
 [ -n "$CHANNEL" ] && CMD+=(--channel "$CHANNEL")
 
-[ -n "$USER_NAME"               ] && CMD+=(--set "core.user_name=$USER_NAME")
-[ -n "$PROJECT_NAME"            ] && CMD+=(--set "core.project_name=$PROJECT_NAME")
-[ -n "$COMMUNICATION_LANGUAGE"  ] && CMD+=(--set "core.communication_language=$COMMUNICATION_LANGUAGE")
-[ -n "$DOCUMENT_OUTPUT_LANGUAGE"] && CMD+=(--set "core.document_output_language=$DOCUMENT_OUTPUT_LANGUAGE")
+# Pass core values for core module + every installed module
+_all_modules="core${MODULES:+,$MODULES}"
+IFS=',' read -ra _mod_list <<< "$_all_modules"
+for _mod in "${_mod_list[@]}"; do
+    [ -n "$USER_NAME"                ] && CMD+=(--set "${_mod}.user_name=$USER_NAME")
+    [ -n "$PROJECT_NAME"             ] && CMD+=(--set "${_mod}.project_name=$PROJECT_NAME")
+    [ -n "$COMMUNICATION_LANGUAGE"   ] && CMD+=(--set "${_mod}.communication_language=$COMMUNICATION_LANGUAGE")
+    [ -n "$DOCUMENT_OUTPUT_LANGUAGE" ] && CMD+=(--set "${_mod}.document_output_language=$DOCUMENT_OUTPUT_LANGUAGE")
+done
 
 for cfg in "${MODULE_CONFIG[@]}"; do
     CMD+=(--set "$cfg")
@@ -106,15 +78,6 @@ echo ""
 
 echo -e "${YELLOW}Command:${NC}"
 echo -e "  ${BLUE}${CMD[*]}${NC}"
-echo ""
-
-# ── Confirmation ──────────────────────────────────────────────────────────────
-read -p "Proceed with installation? [yes/no]: " confirm
-if [ "$confirm" != "yes" ]; then
-    echo -e "${BLUE}Installation cancelled.${NC}"
-    exit 0
-fi
-
 echo ""
 
 # ── Run installer ─────────────────────────────────────────────────────────────
