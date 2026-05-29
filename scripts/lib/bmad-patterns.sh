@@ -4,7 +4,8 @@
 # Directories exclusively owned by BMAD → full replacement, no prompt
 BMAD_OWNED_DIRS=(
     "_bmad"
-    "_bmad-shared"
+    ".agents"
+    ".claude"
 )
 
 # BMAD directories with potential user content → prompt if the directory already exists
@@ -13,11 +14,18 @@ BMAD_PROMPT_DIRS=(
     "_bmad-output"
 )
 
-# Shared directories → only "bmad-*" subdirectories are managed
+# Shared directories where only bmad-* entries are managed (source = same dir in source repo)
+# Used by clean-bmad-config.sh and as simple shared copy targets
 BMAD_SHARED_DIRS=(
+    ".github/agents"
+)
+
+# Custom skills source → merged into BMAD_SKILL_DEST_DIRS after the owned dir copy
+BMAD_SKILLS_CUSTOM_SOURCE="_bmad-shared/skills"
+# Destination dirs that receive the custom skills merge
+BMAD_SKILL_DEST_DIRS=(
     ".agents/skills"
     ".claude/skills"
-    ".github/agents"
 )
 
 # Patterns added/removed from .git/info/exclude
@@ -30,8 +38,9 @@ BMAD_EXCLUDE_PATTERNS=(
     "scripts/lib/bmad-patterns.sh"
     "scripts/lib/colors.sh"
     ".agents/skills/bmad-*"
-    ".agents/skills/gd-shared-*"
     ".claude/skills/bmad-*"
+    ".agents/skills/gd-shared-*"
+    ".claude/skills/gd-shared-*"
     ".github/agents/bmad-*"
 )
 

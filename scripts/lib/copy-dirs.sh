@@ -8,7 +8,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/bmad-patterns.sh"
 _check_source_dirs() {
     echo -e "${YELLOW}Checking source directories...${NC}"
     DIRS_TO_COPY=()
-    for dir in "${BMAD_OWNED_DIRS[@]}" "${BMAD_PROMPT_DIRS[@]}" "${BMAD_SHARED_DIRS[@]}"; do
+    _SKILLS_CUSTOM_FOUND=false
+    _SHARED_DIRS_TO_COPY=()
+
+    for dir in "${BMAD_OWNED_DIRS[@]}" "${BMAD_PROMPT_DIRS[@]}"; do
         if [ -d "$SOURCE_DIR/$dir" ]; then
             echo -e "  ${GREEN}✓${NC} Found: $dir"
             DIRS_TO_COPY+=("$dir")
@@ -16,9 +19,26 @@ _check_source_dirs() {
             echo -e "  ${YELLOW}⊘${NC} Not found: $dir (skipping)"
         fi
     done
+
+    if [ -d "$SOURCE_DIR/$BMAD_SKILLS_CUSTOM_SOURCE" ]; then
+        echo -e "  ${GREEN}✓${NC} Found: $BMAD_SKILLS_CUSTOM_SOURCE (custom skills → ${BMAD_SKILL_DEST_DIRS[*]})"
+        _SKILLS_CUSTOM_FOUND=true
+    else
+        echo -e "  ${YELLOW}⊘${NC} Not found: $BMAD_SKILLS_CUSTOM_SOURCE (skipping custom skills)"
+    fi
+
+    for dir in "${BMAD_SHARED_DIRS[@]}"; do
+        if [ -d "$SOURCE_DIR/$dir" ]; then
+            echo -e "  ${GREEN}✓${NC} Found: $dir"
+            _SHARED_DIRS_TO_COPY+=("$dir")
+        else
+            echo -e "  ${YELLOW}⊘${NC} Not found: $dir (skipping)"
+        fi
+    done
+
     echo ""
 
-    if [ ${#DIRS_TO_COPY[@]} -eq 0 ]; then
+    if [ ${#DIRS_TO_COPY[@]} -eq 0 ] && [ "$_SKILLS_CUSTOM_FOUND" = false ] && [ ${#_SHARED_DIRS_TO_COPY[@]} -eq 0 ]; then
         echo -e "${RED}✗ No BMAD directories found to copy!${NC}"
         exit 1
     fi
@@ -77,7 +97,6 @@ _copy_shared_dir() {
     local dir="$1"
     mkdir -p "$DEST_DIR/$dir"
 
-    # Remove only existing bmad-* subdirectories
     local removed=0
     for subdir in "$DEST_DIR/$dir"/bmad-*/; do
         [ -d "$subdir" ] || continue
@@ -91,21 +110,40 @@ _copy_shared_dir() {
     cp -R "$SOURCE_DIR/$dir"/. "$DEST_DIR/$dir/"
 }
 
+_distribute_skills() {
+    echo -e "${YELLOW}Merging custom skills into: [${BMAD_SKILL_DEST_DIRS[*]}]${NC}"
+    for dest_dir in "${BMAD_SKILL_DEST_DIRS[@]}"; do
+        echo -e "  ${BLUE}→${NC} Target: $dest_dir"
+        mkdir -p "$DEST_DIR/$dest_dir"
+        cp -R "$SOURCE_DIR/$BMAD_SKILLS_CUSTOM_SOURCE"/. "$DEST_DIR/$dest_dir/"
+        rm -f "$DEST_DIR/$dest_dir/.gitkeep"
+        echo -e "  ${GREEN}✓${NC} Completed: $dest_dir"
+    done
+    echo ""
+}
+
 _do_copy() {
     echo -e "${BLUE}Starting copy operation...${NC}"
     echo ""
 
     for dir in "${DIRS_TO_COPY[@]}"; do
         echo -e "${YELLOW}Processing: $dir${NC}"
-
         if _is_owned "$dir"; then
             _copy_owned_dir "$dir"
         elif _is_prompt "$dir"; then
             _copy_prompt_dir "$dir"
-        else
-            _copy_shared_dir "$dir"
         fi
+        echo -e "  ${GREEN}✓${NC} Completed"
+        echo ""
+    done
 
+    if [ "$_SKILLS_CUSTOM_FOUND" = true ]; then
+        _distribute_skills
+    fi
+
+    for dir in "${_SHARED_DIRS_TO_COPY[@]}"; do
+        echo -e "${YELLOW}Processing: $dir${NC}"
+        _copy_shared_dir "$dir"
         echo -e "  ${GREEN}✓${NC} Completed"
         echo ""
     done

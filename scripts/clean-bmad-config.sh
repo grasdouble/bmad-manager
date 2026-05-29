@@ -26,35 +26,51 @@ echo ""
 echo -e "${YELLOW}Scanning for BMAD configuration...${NC}"
 
 ITEMS_TO_DELETE=()
+BMAD_CONTENT_FOUND=false
 
 # Entire owned directories
 for dir in "${BMAD_OWNED_DIRS[@]}" "${BMAD_PROMPT_DIRS[@]}"; do
     if [ -d "$TARGET_DIR/$dir" ]; then
         echo -e "  ${RED}•${NC} $dir/"
         ITEMS_TO_DELETE+=("dir:$dir")
+        BMAD_CONTENT_FOUND=true
     fi
 done
 
-# bmad-* subdirectories in shared folders
-for shared in "${BMAD_SHARED_DIRS[@]}"; do
+# bmad-* entries in shared folders (dirs for .agents/skills etc., files for .github/agents)
+for shared in "${BMAD_SHARED_DIRS[@]}" "${BMAD_SKILL_DEST_DIRS[@]}"; do
     if [ -d "$TARGET_DIR/$shared" ]; then
-        for subdir in "$TARGET_DIR/$shared"/bmad-*/; do
-            [ -d "$subdir" ] || continue
-            rel="$shared/$(basename "$subdir")"
-            echo -e "  ${RED}•${NC} $rel/"
-            ITEMS_TO_DELETE+=("dir:$rel")
+        for entry in "$TARGET_DIR/$shared"/bmad-*; do
+            [ -e "$entry" ] || continue
+            rel="$shared/$(basename "$entry")"
+            if [ -d "$entry" ]; then
+                echo -e "  ${RED}•${NC} $rel/"
+                ITEMS_TO_DELETE+=("dir:$rel")
+            else
+                echo -e "  ${RED}•${NC} $rel"
+                ITEMS_TO_DELETE+=("file:$rel")
+            fi
+            BMAD_CONTENT_FOUND=true
         done
     fi
 done
 
-# The cleanup script itself
+# The cleanup script and its lib files
 echo -e "  ${RED}•${NC} scripts/clean-bmad-config.sh"
 ITEMS_TO_DELETE+=("file:scripts/clean-bmad-config.sh")
+if [ -f "$TARGET_DIR/scripts/lib/bmad-patterns.sh" ]; then
+    echo -e "  ${RED}•${NC} scripts/lib/bmad-patterns.sh"
+    ITEMS_TO_DELETE+=("file:scripts/lib/bmad-patterns.sh")
+fi
+if [ -f "$TARGET_DIR/scripts/lib/colors.sh" ]; then
+    echo -e "  ${RED}•${NC} scripts/lib/colors.sh"
+    ITEMS_TO_DELETE+=("file:scripts/lib/colors.sh")
+fi
 
 echo ""
 
-if [ ${#ITEMS_TO_DELETE[@]} -eq 1 ]; then
-    # Only the script itself — nothing else to clean
+if [ "$BMAD_CONTENT_FOUND" = false ] && [ ${#ITEMS_TO_DELETE[@]} -le 3 ]; then
+    # Only the script files themselves — no real BMAD content to clean
     echo -e "${GREEN}✓ No BMAD configuration found. Nothing to clean.${NC}"
     exit 0
 fi
@@ -90,7 +106,10 @@ for item in "${ITEMS_TO_DELETE[@]}"; do
     echo ""
 done
 
-# Remove scripts/ if empty after deleting the cleanup script
+# Remove scripts/lib/ and scripts/ if empty after deletion
+if [ -d "$TARGET_DIR/scripts/lib" ] && [ -z "$(ls -A "$TARGET_DIR/scripts/lib")" ]; then
+    rmdir "$TARGET_DIR/scripts/lib"
+fi
 if [ -d "$TARGET_DIR/scripts" ] && [ -z "$(ls -A "$TARGET_DIR/scripts")" ]; then
     rmdir "$TARGET_DIR/scripts"
 fi
