@@ -8,6 +8,7 @@
     "bmad:update": "pnpm dlx bmad-method install",
     "bmad:viewer": "pnpm dlx bmad-viewer",
     "bmad:copy": "bash scripts/copy-bmad-config.sh",
+    "bmad:install": "bash scripts/install-bmad.sh",
     "bmad:delete": "bash scripts/delete-bmad.sh"
   },
   "keywords": [],
