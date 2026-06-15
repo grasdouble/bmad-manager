@@ -55,9 +55,12 @@ CMD=(npx bmad-method install --yes --directory "$REPO_DIR")
 [ -n "$DOCUMENT_OUTPUT_LANGUAGE" ] && CMD+=(--set "core.document_output_language=$DOCUMENT_OUTPUT_LANGUAGE")
 [ -n "$OUTPUT_FOLDER"            ] && CMD+=(--output-folder "$OUTPUT_FOLDER")
 
-# Note: core values (project_name, communication_language, document_output_language)
-# are inherited by all modules via BMAD's default mechanism. No need to repeat them.
-
+# Pass module-specific config  
+# Core values are NOT passed to modules here because:
+# 1. Passing them would cause BMAD to write them in config.toml [modules.*] sections (duplicating [core])
+# 2. Core values are already inherited by modules via BMAD's default mechanism
+# 3. We manually add core section to _bmad/<module>/config.yaml files in post-processing
+# for module context persistence and clarity
 for cfg in "${MODULE_CONFIG[@]}"; do
     CMD+=(--set "$cfg")
 done
