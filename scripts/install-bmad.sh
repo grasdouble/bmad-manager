@@ -48,15 +48,14 @@ CMD=(npx bmad-method install --yes --directory "$REPO_DIR")
 [ -n "$TOOLS"   ] && CMD+=(--tools   "$TOOLS")
 [ -n "$CHANNEL" ] && CMD+=(--channel "$CHANNEL")
 
-# Pass core values for core module + every installed module
-_all_modules="core${MODULES:+,$MODULES}"
-IFS=',' read -ra _mod_list <<< "$_all_modules"
-for _mod in "${_mod_list[@]}"; do
-    [ -n "$USER_NAME"                ] && CMD+=(--set "${_mod}.user_name=$USER_NAME")
-    [ -n "$PROJECT_NAME"             ] && CMD+=(--set "${_mod}.project_name=$PROJECT_NAME")
-    [ -n "$COMMUNICATION_LANGUAGE"   ] && CMD+=(--set "${_mod}.communication_language=$COMMUNICATION_LANGUAGE")
-    [ -n "$DOCUMENT_OUTPUT_LANGUAGE" ] && CMD+=(--set "${_mod}.document_output_language=$DOCUMENT_OUTPUT_LANGUAGE")
-done
+# Use shortcuts for core config values (these are historical shortcuts per docs)
+[ -n "$USER_NAME"                ] && CMD+=(--user-name "$USER_NAME")
+[ -n "$PROJECT_NAME"             ] && CMD+=(--set "core.project_name=$PROJECT_NAME")
+[ -n "$DOCUMENT_OUTPUT_LANGUAGE" ] && CMD+=(--set "core.document_output_language=$DOCUMENT_OUTPUT_LANGUAGE")
+[ -n "$OUTPUT_FOLDER"            ] && CMD+=(--output-folder "$OUTPUT_FOLDER")
+
+# Note: core values (project_name, communication_language, document_output_language)
+# are inherited by all modules via BMAD's default mechanism. No need to repeat them.
 
 for cfg in "${MODULE_CONFIG[@]}"; do
     CMD+=(--set "$cfg")
@@ -75,6 +74,7 @@ echo -e "  ${BLUE}•${NC} User:          ${USER_NAME}"
 echo -e "  ${BLUE}•${NC} Project:       ${PROJECT_NAME}"
 echo -e "  ${BLUE}•${NC} Comm. lang:    ${COMMUNICATION_LANGUAGE}"
 echo -e "  ${BLUE}•${NC} Output lang:   ${DOCUMENT_OUTPUT_LANGUAGE}"
+echo -e "  ${BLUE}•${NC} Output folder: ${OUTPUT_FOLDER}"
 if [ ${#MODULE_CONFIG[@]} -gt 0 ]; then
     echo -e "  ${BLUE}•${NC} Module config: (${#MODULE_CONFIG[@]} settings)"
 fi
