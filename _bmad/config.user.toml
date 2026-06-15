@@ -11,7 +11,6 @@
 
 [core]
 user_name = "BMAD_MANAGER_USERNAME"
-communication_language = "BMAD_MANAGER_COMMUNICATION_LANGUAGE"
 
 [modules.bmm]
 user_skill_level = "expert"
