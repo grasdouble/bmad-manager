@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # install-bmad.sh — Installs BMAD non-interactively using a config file
-# Usage: bash scripts/install-bmad.sh [path/to/install-bmad.config]
+# Usage: bash scripts/install-bmad.sh [--list-options [module]]
+#        bash scripts/install-bmad.sh [path/to/install-bmad.config]
 #
 # Reads the config file and runs: npx bmad-method install --yes
-# with all flags derived from the config, so no interactive prompts are needed.
+# The action (install/update/quick-update) is auto-detected based on whether _bmad/
+# already exists. This script is optimized for new installations.
+#
+# For module options: bash scripts/install-bmad.sh --list-options [module]
 
 set -e
 
@@ -12,6 +16,14 @@ REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CONFIG_FILE="${1:-$SCRIPT_DIR/install-bmad.config}"
 
 source "$SCRIPT_DIR/lib/colors.sh"
+
+# ── Handle --list-options pass-through ─────────────────────────────────────────
+if [ "$1" = "--list-options" ]; then
+    echo -e "${YELLOW}Available options for BMAD modules:${NC}"
+    echo ""
+    npx bmad-method@latest install --list-options "${2:-}"
+    exit 0
+fi
 
 # ── Header ────────────────────────────────────────────────────────────────────
 print_header "BMAD Auto-Install Script            "
@@ -64,10 +76,7 @@ echo -e "  ${BLUE}•${NC} Project:       ${PROJECT_NAME}"
 echo -e "  ${BLUE}•${NC} Comm. lang:    ${COMMUNICATION_LANGUAGE}"
 echo -e "  ${BLUE}•${NC} Output lang:   ${DOCUMENT_OUTPUT_LANGUAGE}"
 if [ ${#MODULE_CONFIG[@]} -gt 0 ]; then
-    echo -e "  ${BLUE}•${NC} Module config:"
-    for cfg in "${MODULE_CONFIG[@]}"; do
-        echo -e "    ${GREEN}-${NC} $cfg"
-    done
+    echo -e "  ${BLUE}•${NC} Module config: (${#MODULE_CONFIG[@]} settings)"
 fi
 [ -n "$CHANNEL"  ] && echo -e "  ${BLUE}•${NC} Channel:       ${CHANNEL}"
 [ -n "$PIN_BMB"  ] && echo -e "  ${BLUE}•${NC} Pin bmb:       ${PIN_BMB}"
@@ -77,13 +86,20 @@ fi
 echo ""
 
 echo -e "${YELLOW}Command:${NC}"
-echo -e "  ${BLUE}${CMD[*]}${NC}"
+echo -e "  ${BLUE}${CMD[0]} ... [${#CMD[@]} flags]${NC}"
 echo ""
 
 # ── Run installer ─────────────────────────────────────────────────────────────
 echo -e "${YELLOW}Running installer...${NC}"
 echo ""
 "${CMD[@]}"
+
+# ── Post-process YAML files ────────────────────────────────────────────────────
+if [ -f "$SCRIPT_DIR/lib/fix-bmad-yaml.sh" ]; then
+    echo ""
+    echo -e "${YELLOW}Fixing YAML formatting...${NC}"
+    bash "$SCRIPT_DIR/lib/fix-bmad-yaml.sh" "$REPO_DIR"
+fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
@@ -92,4 +108,8 @@ echo ""
 echo -e "${BLUE}Next steps:${NC}"
 echo -e "  1. Verify the config: ${YELLOW}_bmad/core/config.yaml${NC}"
 echo -e "  2. To copy BMAD to a project: ${YELLOW}pnpm run bmad:copy${NC}"
+echo -e "  3. For available module options: ${YELLOW}bash scripts/install-bmad.sh --list-options [module]${NC}"
 echo ""
+
+
+
