@@ -1,49 +1,49 @@
 installation:
-  version: 6.10.0
+  version: 6.11.0
   installDate: 2026-06-15T11:36:42.409Z
-  lastUpdated: 2026-08-02T16:38:22.954Z
+  lastUpdated: 2026-09-03T21:22:27.632Z
 modules:
   - name: core
-    version: 6.10.0
+    version: 6.11.0
     installDate: 2026-06-15T11:36:42.057Z
-    lastUpdated: 2026-08-02T16:38:22.948Z
+    lastUpdated: 2026-09-03T21:22:27.624Z
     source: built-in
     npmPackage: null
     repoUrl: null
   - name: bmm
-    version: 6.10.0
+    version: 6.11.0
     installDate: 2026-06-15T11:36:42.033Z
-    lastUpdated: 2026-08-02T16:38:22.948Z
+    lastUpdated: 2026-09-03T21:22:27.625Z
     source: built-in
     npmPackage: null
     repoUrl: null
   - name: tea
-    version: v1.19.1
+    version: v1.24.0
     installDate: 2026-06-15T11:36:42.236Z
-    lastUpdated: 2026-08-02T16:38:22.950Z
+    lastUpdated: 2026-09-03T21:22:27.627Z
     source: external
     npmPackage: bmad-method-test-architecture-enterprise
     repoUrl: https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise
     channel: stable
-    sha: 74cf6e6adf5a6f46614788f184f340ea58336157
+    sha: 7ba2130193c473b53d2e323b4da9a80697eef88e
   - name: bmb
-    version: v2.1.0
+    version: v2.2.2
     installDate: 2026-06-15T11:36:42.281Z
-    lastUpdated: 2026-08-02T16:38:22.952Z
+    lastUpdated: 2026-09-03T21:22:27.629Z
     source: external
     npmPackage: bmad-builder
     repoUrl: https://github.com/bmad-code-org/bmad-builder
     channel: stable
-    sha: d54981a8ba3b990148256455ccf4e6c1cb4918f0
+    sha: 4a1422274a2acb0fb0ec0511753da6263948f072
   - name: cis
-    version: v0.2.1
+    version: v0.3.2
     installDate: 2026-06-15T11:36:42.297Z
-    lastUpdated: 2026-08-02T16:38:22.954Z
+    lastUpdated: 2026-09-03T21:22:27.632Z
     source: external
     npmPackage: bmad-creative-intelligence-suite
     repoUrl: https://github.com/bmad-code-org/bmad-module-creative-intelligence-suite
     channel: stable
-    sha: 07a8dd03d196a762f21c241d985293fe5b0f90e7
+    sha: 97298b22fee1c7e482710d3a8414adb5cfccccd9
 ides:
   - claude-code
   - github-copilot
